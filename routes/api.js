@@ -264,6 +264,37 @@ router.post('/sendemail', (req, res) => {
 
 })
 
+router.post('/addRating', (req, res) => {
+    console.log(
+        req.body.rating, req.body.userId
+    );
+
+    Employee.findOne({ "_id": req.body.userId }, function (err, data) {
+        if (err) {
+            console.log('error occured');
+            console.log(err);
+            res.status(400).send(err);
+        } else {
+            var ratingToSave = (req.body.rating + (data.ratingCount * data.rating)) / (data.ratingCount + 1)
+            
+            Employee.findByIdAndUpdate(
+                { "_id": req.body.userId },
+                { $set: { rating: ratingToSave, ratingCount : (data.ratingCount + 1) } }
+                , function (err, data) {
+                    if (err) {
+                        console.log('error occured');
+                        console.log(err);
+                        res.status(400).send(err);
+                    } else {
+                        res.json({ message: 'success', details: "Add Rating Successfully", rating: data });
+                    }
+                });
+        }
+    });
+
+});
+
+module.exports = router
 
 
 router.post('/employeeprofpicsave',upload.single('profpic'), (req, res) => {
@@ -296,7 +327,7 @@ router.post('/clientprofpicsave',upload.single('profpic'), (req, res) => {
     })
 });
 
-module.exports = router
+//module.exports = router
 
 
 /*router.post('/register', (req, res) => {
