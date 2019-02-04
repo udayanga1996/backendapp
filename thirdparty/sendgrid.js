@@ -1,4 +1,4 @@
-const apikey="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";
+const apikey="//key";
 var helper = require('sendgrid').mail;
 var fromEmail = new helper.Email('Work_H_Hire@gmail.com');
 

@@ -9,7 +9,6 @@ const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken');
 const multer  = require('multer');
 const email = require('./../thirdparty/sendgrid');
-//const db = "mongodb://localhost:27017/work_and_hire"
 const db = "mongodb://Delta:123456a@ds163054.mlab.com:63054/work_and_hire"
 mongoose.connect(db, err => {
     if (err) {
@@ -30,11 +29,12 @@ const storage = multer.diskStorage({
   });
   const upload = multer({ storage: storage })
 
-router.get('/', (req, res) => {
+//API call
+  router.get('/', (req, res) => {
     res.send('From API route')
 })
-
-
+//-------------------------------------------------------------------------------------------------------------------------------------
+//Register Employee
 router.post('/employeeRegister', (req, res) => {
     let userData = req.body
     console.log(userData);
@@ -49,6 +49,7 @@ router.post('/employeeRegister', (req, res) => {
     })
 })
 
+//Register Client
 router.post('/clientRegister', (req, res) => {
     let userData = req.body
     console.log(userData);
@@ -63,47 +64,24 @@ router.post('/clientRegister', (req, res) => {
     })
 })
 
-router.post('/login', (req, res) => {
-    let userData = req.body
-    User.findOne({ email: userData.email }, (error, user) => {
-        if (error) {
-            console.log(error)
-        }
-        else {
-            if (!user) {
-                res.status(401).send('Email Invalid')
-            }
-            else {
-                if (user.password !== userData.password) {
-                    res.status(401).send('Not the Password')
-                }
-                res.status(200).json({
-                    "token": jwt.sign({ _id: user._id },
-                        "SECRET#123",
-                        {
-                            expiresIn: "20m"
-                        })
-                });
-            }
-
-        }
-    })
-})
-
-
-
+//client login
 router.get('/client/:email', function (req, res, next) {
     Client.findOne({ email: req.params.email }).then(function (client) {
         res.send(client);
     })
 })
 
+
+//Employee login
 router.get('/employees/:email', function (req, res, next) {
     Employee.findOne({ email: req.params.email }).then(function (employee) {
         res.send(employee);
     })
 })
 
+//-------------------------------------------------------------------------------------------------------------------------------------
+
+//search for employee list according to the worktype
 router.get('/emp/:worktype', function (req, res, next) {
     Employee.find({ worktype: req.params.worktype }).then(function (employee) {
         res.send({ employee });
@@ -111,8 +89,7 @@ router.get('/emp/:worktype', function (req, res, next) {
 })
 
 
-
-
+//Access Employee Profile
 router.post('/profile', (req, res) => {
     // let userData=req.
     // console.log(req.body.token)
@@ -149,6 +126,7 @@ router.post('/profile', (req, res) => {
 
 });
 
+
 router.post('/getEmployeeByCategory', (req, res) => {
     var catogery = req.body.worktype;
     const query = { worktype: catogery };
@@ -162,6 +140,7 @@ router.post('/getEmployeeByCategory', (req, res) => {
     })
 });
 
+
 router.post('/getEmployeeDetails', (req, res) => {
     var email = req.body;
     const query = { email: email };
@@ -174,96 +153,8 @@ router.post('/getEmployeeDetails', (req, res) => {
         }
     })
 });
-router.post('/createInvoice', (req, res) => {
-   // var cost=(parseInt(req.body.Basic_charge)*30)/100
-    let invoiceData = {
-        User_ID: req.body.User_ID,
-        Employee_name: req.body.Employee_name,
-        Basic_charge: req.body.Basic_charge,
-        Cost: (parseInt(req.body.Basic_charge)*30)/100,
-        Total_Cost: parseInt(req.body.Basic_charge)+(parseInt(req.body.Basic_charge)*30)/100,
-    }
-    console.log(invoiceData)
-    console.log("In backend " + JSON.stringify(invoiceData));
-    let invoice = new Invoice(invoiceData)
-    invoice.save((error, registeredInvoice) => {
-        if (error) {
-            console.log(error)
-        }
-        else {
-            res.status(200).send(registeredInvoice)
-        }
-    })
-})
 
-
-router.post('/bookemployee', (req, res) => {
-    var bookingData = req.body;
-    let booking = new Booking(bookingData)
-    booking.save((err, booking) => {
-        if (err) {
-            //console.log(err)
-            res.json({ state: false });
-        }
-        else {
-            res.json({ state: true, Booking: booking });
-        }
-    })
-});
-
-router.post('/cancelbooking', (req, res) => {
-    var bookingId = req.body.id;
-    //console.log(bookingId)
-    const query = { Bookingid: bookingId };
-    Booking.update(query, { $set: { Booking_status: "canceled" } }, (err, booking) => {
-        if (err) {
-            // console.log(err)
-            res.json({ state: false });
-        }
-        else {
-            res.json({ state: true, Booking: booking });
-        }
-    })
-});
-
-router.post('/clientBooking', (req, res) => {
-    var clientname = req.body.clientname;
-    //console.log(bookingId)
-    const query = { Client_name: clientname };
-    Booking.find(query, (err, bookings) => {
-        if (err) {
-            // console.log(err)
-            res.json({ state: false });
-        }
-        else {
-            res.json({ state: true, Bookings: bookings });
-        }
-    })
-});
-
-
-router.post('/sendemail', (req, res) => {
-    var myemail = req.body.email
-    const query = { _id: req.body.id };
-    Invoice.findOne(query, (err, myinvoice) => {
-        if (err) {
-            //console.log(err)
-            res.json({ state: false });
-        } else {
-            console.log(myinvoice)
-            email.sendinvoice(myemail, myinvoice, (err, callb) => {
-                if (err) {
-                    //console.log(err)
-                    res.json({ state: false });
-                } else {
-                    res.json({ state: true, mag: "email sent" });
-                }
-            })
-        }
-    })
-
-})
-
+//Rating of the employees
 router.post('/addRating', (req, res) => {
     console.log(
         req.body.rating, req.body.userId
@@ -294,9 +185,7 @@ router.post('/addRating', (req, res) => {
 
 });
 
-module.exports = router
-
-
+//Save Employee Profile Picture
 router.post('/employeeprofpicsave',upload.single('profpic'), (req, res) => {
     filepath = req.file.path;
     //console.log(bookingId)
@@ -312,6 +201,7 @@ router.post('/employeeprofpicsave',upload.single('profpic'), (req, res) => {
     })
 });
 
+//Save Client Profile Picture
 router.post('/clientprofpicsave',upload.single('profpic'), (req, res) => {
     filepath = req.file.path;
     //console.log(bookingId)
@@ -326,6 +216,107 @@ router.post('/clientprofpicsave',upload.single('profpic'), (req, res) => {
         }
     })
 });
+
+//-------------------------------------------------------------------------------------------------------------------------------------
+
+//Invoice to be created by Employee \ 30% of the Basic sal will be the service charge
+router.post('/createInvoice', (req, res) => {
+   // var cost=(parseInt(req.body.Basic_charge)*30)/100
+    let invoiceData = {
+        User_ID: req.body.User_ID,
+        Employee_name: req.body.Employee_name,
+        Basic_charge: req.body.Basic_charge,
+        Cost: (parseInt(req.body.Basic_charge)*30)/100,
+        Total_Cost: parseInt(req.body.Basic_charge)+(parseInt(req.body.Basic_charge)*30)/100,
+    }
+    console.log(invoiceData)
+    console.log("In backend " + JSON.stringify(invoiceData));
+    let invoice = new Invoice(invoiceData)
+    invoice.save((error, registeredInvoice) => {
+        if (error) {
+            console.log(error)
+        }
+        else {
+            res.status(200).send(registeredInvoice)
+        }
+    })
+})
+
+//R
+router.post('/bookemployee', (req, res) => {
+    var bookingData = req.body;
+    let booking = new Booking(bookingData)
+    booking.save((err, booking) => {
+        if (err) {
+            //console.log(err)
+            res.json({ state: false });
+        }
+        else {
+            res.json({ state: true, Booking: booking });
+        }
+    })
+});
+
+
+//cancelling the job request
+router.post('/cancelbooking', (req, res) => {
+    var bookingId = req.body.id;
+    //console.log(bookingId)
+    const query = { Bookingid: bookingId };
+    Booking.update(query, { $set: { Booking_status: "canceled" } }, (err, booking) => {
+        if (err) {
+            // console.log(err)
+            res.json({ state: false });
+        }
+        else {
+            res.json({ state: true, Booking: booking });
+        }
+    })
+});
+
+
+router.post('/clientBooking', (req, res) => {
+    var clientname = req.body.clientname;
+    //console.log(bookingId)
+    const query = { Client_name: clientname };
+    Booking.find(query, (err, bookings) => {
+        if (err) {
+            // console.log(err)
+            res.json({ state: false });
+        }
+        else {
+            res.json({ state: true, Bookings: bookings });
+        }
+    })
+});
+
+//sending invoice mail
+router.post('/sendemail', (req, res) => {
+    var myemail = req.body.email
+    const query = { _id: req.body.id };
+    Invoice.findOne(query, (err, myinvoice) => {
+        if (err) {
+            //console.log(err)
+            res.json({ state: false });
+        } else {
+            console.log(myinvoice)
+            email.sendinvoice(myemail, myinvoice, (err, callb) => {
+                if (err) {
+                    //console.log(err)
+                    res.json({ state: false });
+                } else {
+                    res.json({ state: true, mag: "email sent" });
+                }
+            })
+        }
+    })
+
+})
+//-------------------------------------------------------------------------------------------------------------------------------------
+
+
+module.exports = router
+
 
 //module.exports = router
 
@@ -377,3 +368,32 @@ router.post('/clientprofpicsave',upload.single('profpic'), (req, res) => {
         }
     })
 });*/
+
+/*
+router.post('/login', (req, res) => {
+    let userData = req.body
+    User.findOne({ email: userData.email }, (error, user) => {
+        if (error) {
+            console.log(error)
+        }
+        else {
+            if (!user) {
+                res.status(401).send('Email Invalid')
+            }
+            else {
+                if (user.password !== userData.password) {
+                    res.status(401).send('Not the Password')
+                }
+                res.status(200).json({
+                    "token": jwt.sign({ _id: user._id },
+                        "SECRET#123",
+                        {
+                            expiresIn: "20m"
+                        })
+                });
+            }
+
+        }
+    })
+})
+*/
