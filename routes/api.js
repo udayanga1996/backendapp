@@ -286,7 +286,7 @@ router.post('/addRating', (req, res) => {
                         console.log(err);
                         res.status(400).send(err);
                     } else {
-                        res.json({ message: 'success', details: "Add Rating Successfully", rating: data });
+                        res.json({ message: 'success', details: "Add Rating Successfully" });
                     }
                 });
         }
