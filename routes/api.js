@@ -164,7 +164,15 @@ router.post('/getEmployeeDetails', (req, res) => {
     })
 });
 router.post('/createInvoice', (req, res) => {
-    let invoiceData = req.body
+   // var cost=(parseInt(req.body.Basic_charge)*30)/100
+    let invoiceData = {
+        User_ID: req.body.User_ID,
+        Employee_name: req.body.Employee_name,
+        Basic_charge: req.body.Basic_charge,
+        Cost: (parseInt(req.body.Basic_charge)*30)/100,
+        Total_Cost: parseInt(req.body.Basic_charge)+(parseInt(req.body.Basic_charge)*30)/100,
+    }
+    console.log(invoiceData)
     console.log("In backend " + JSON.stringify(invoiceData));
     let invoice = new Invoice(invoiceData)
     invoice.save((error, registeredInvoice) => {
