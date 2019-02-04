@@ -10,7 +10,5 @@ const booking = new Schema({
     Work_type: String,
     Booking_status: String,
     Date: String
-
-
 })
 module.exports = mongoose.model('booking', booking, 'Booking')
