@@ -7,6 +7,7 @@ const Invoice = require('../models/invoice')
 const Booking = require('../models/book')
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken');
+const multer  = require('multer');
 const email = require('./../thirdparty/sendgrid');
 //const db = "mongodb://localhost:27017/work_and_hire"
 const db = "mongodb://Delta:123456a@ds163054.mlab.com:63054/work_and_hire"
@@ -18,6 +19,16 @@ mongoose.connect(db, err => {
         console.log('Connected to DB')
     }
 })
+
+const storage = multer.diskStorage({ 
+    destination: function(req,file,callback){
+      callback(null,'./uploads/');
+    },
+    filename: function(req,file,callback){
+      callback(null,file.originalname);  //file.originalname
+    }
+  });
+  const upload = multer({ storage: storage })
 
 router.get('/', (req, res) => {
     res.send('From API route')
@@ -253,9 +264,39 @@ router.post('/sendemail', (req, res) => {
 
 })
 
+
+
+router.post('/employeeprofpicsave',upload.single('profpic'), (req, res) => {
+    filepath = req.file.path;
+    //console.log(bookingId)
+    const query = { email: req.body.email};
+    Employee.update(query, { $set: { image: filepath } }, (err, user) => {
+        if (err) {
+            // console.log(err)
+            res.json({ state: false });
+        }
+        else {
+            res.json({ state: true, user: user });
+        }
+    })
+});
+
+router.post('/clientprofpicsave',upload.single('profpic'), (req, res) => {
+    filepath = req.file.path;
+    //console.log(bookingId)
+    const query = { email: req.body.email};
+    Client.update(query, { $set: { image: filepath } }, (err, user) => {
+        if (err) {
+            // console.log(err)
+            res.json({ state: false });
+        }
+        else {
+            res.json({ state: true, user: user });
+        }
+    })
+});
+
 module.exports = router
-
-
 
 
 /*router.post('/register', (req, res) => {

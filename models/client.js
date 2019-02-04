@@ -9,7 +9,7 @@ const userSchema = new Schema({
     password: String,
     rating:String,
     comments:String,
-    
+    image:String 
         
 })
 module.exports = mongoose.model('client',userSchema,'Client')

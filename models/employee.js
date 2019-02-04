@@ -10,6 +10,7 @@ const userSchema = new Schema({
     rating:String,
     comments:String,
     invoice:String,
-    worktype:String, 
+    worktype:String,
+    image:String 
 })
 module.exports = mongoose.model('employee',userSchema,'Employee')
