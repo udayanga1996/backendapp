@@ -88,6 +88,16 @@ router.get('/emp/:worktype', function (req, res, next) {
     })
 })
 
+//---------------------------------------Update employee's availability-----------------------------------------------------------
+ router.put('/empl/:id',function(req,res,next){
+     Employee.findByIdAndUpdate({_id: req.params.id},req.body).then(function(employee){
+         Employee.findOne({_id:req.params.id}).then(function(employee){
+             res.send(employee);
+         })
+     })
+ })
+
+
 
 //Access Employee Profile
 router.post('/profile', (req, res) => {
