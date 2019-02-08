@@ -7,4 +7,4 @@ const userSchema = new mongoose.Schema({
     Cost: String,
     Total_Cost: String,
 })
-module.exports = mongoose.model("invoce",userSchema,"Invoice");
+module.exports = mongoose.model("invoice",userSchema,"Invoice");

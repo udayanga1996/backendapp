@@ -230,12 +230,12 @@ router.post('/clientprofpicsave', upload.single('profpic'), (req, res) => {
 //-------------------------------------------------------------------------------------------------------------------------------------
 
 //Invoice to be created by Employee \ 30% of the Basic sal will be the service charge
-router.post('/createinvoice', (req, res) => {
     // var cost=(parseInt(req.body.Basic_charge)*30)/100
+router.post('/createinvoice', (req, res) => {
     let invoiceData = {
         User_ID: req.body.User_ID,
         Employee_name: req.body.Employee_name,
-        Basic_charge: req.body.Basic_charge,
+        Basic_charge: (req.body.Basic_charge),
         Cost: (parseInt(req.body.Basic_charge) * 30) / 100,
         Total_Cost: parseInt(req.body.Basic_charge) + (parseInt(req.body.Basic_charge) * 30) / 100,
     }
@@ -248,10 +248,10 @@ router.post('/createinvoice', (req, res) => {
         }
         else {
             res.status(200).send(registeredInvoice)
+           // res.json({ state: true, Booking: invoice })
         }
     })
     })
-
     //R
     router.post('/bookemployee', (req, res) => {
         var bookingData = req.body;
@@ -337,13 +337,13 @@ router.post('/createinvoice', (req, res) => {
                     if (user.password !== userData.password) {
                         res.status(401).send('Not the Password')
                     }
-                    res.status(200).json({
-                        "token": jwt.sign({ _id: user._id },
-                            "SECRET#123",
-                            {
+                    //res.status(200).json({
+                      //  "token": jwt.sign({ _id: user._id },
+                        //    "SECRET#123",
+                          //  {
                                 expiresIn: "20m"
-                            })
-                    });
+                            //})
+                   // });
                 }
 
             }
