@@ -39,12 +39,12 @@ router.post('/employeeRegister', (req, res) => {
     let userData = req.body
     console.log(userData);
     let user = new Employee(userData)
-    user.save((error, registeredUser) => {
+    user.save((error, registeredEmployee) => {
         if (error) {
             console.log(error)
         }
         else {
-            res.status(200).send(registeredUser)
+            res.status(200).send(registeredEmployee)
         }
     })
 })
@@ -54,12 +54,12 @@ router.post('/clientRegister', (req, res) => {
     let userData = req.body
     console.log(userData);
     let user = new Client(userData)
-    user.save((error, registeredUser) => {
+    user.save((error, registeredClient) => {
         if (error) {
             console.log(error)
         }
         else {
-            res.status(200).send(registeredUser)
+            res.status(200).send(registeredClient)
         }
     })
 })
@@ -89,13 +89,13 @@ router.get('/emp/:worktype', function (req, res, next) {
 })
 
 //---------------------------------------Update employee's availability-----------------------------------------------------------
- router.put('/empl/:id',function(req,res,next){
-     Employee.findByIdAndUpdate({_id: req.params.id},req.body).then(function(employee){
-         Employee.findOne({_id:req.params.id}).then(function(employee){
-             res.send(employee);
-         })
-     })
- })
+router.put('/empl/:id', function (req, res, next) {
+    Employee.findByIdAndUpdate({ _id: req.params.id }, req.body).then(function (employee) {
+        Employee.findOne({ _id: req.params.id }).then(function (employee) {
+            res.send(employee);
+        })
+    })
+})
 
 
 
@@ -176,11 +176,11 @@ router.post('/addRating', (req, res) => {
             console.log(err);
             res.status(400).send(err);
         } else {
-            var ratingToSave = (req.body.rating + (data.ratingCount * data.rating)) / (data.ratingCount + 1)
+            var ratingToSave = (req.body.rating + (data.ratingCount * data.rating)) / (data.ratingCount + 0)
 
             Employee.findByIdAndUpdate(
                 { "_id": req.body.userId },
-                { $set: { rating: ratingToSave, ratingCount: (data.ratingCount + 1) } }
+                { $set: { rating: ratingToSave, ratingCount: (data.ratingCount + 0) } }
                 , function (err, data) {
                     if (err) {
                         console.log('error occured');
@@ -230,11 +230,27 @@ router.post('/clientprofpicsave', upload.single('profpic'), (req, res) => {
 //-------------------------------------------------------------------------------------------------------------------------------------
 
 //Invoice to be created by Employee \ 30% of the Basic sal will be the service charge
-    // var cost=(parseInt(req.body.Basic_charge)*30)/100
+// var cost=(parseInt(req.body.Basic_charge)*30)/100
 router.post('/createinvoice', (req, res) => {
+
+    jwt.verify(req.body.token, "SECRET#123",
+        (err, decoded) => {
+            if (err) {
+                //return res.status(500).send({ auth: false, message: 'Token authentication failed.' });
+                console.log(err);
+                return false;
+            }
+
+            else {
+                 userId = decoded._id;
+                 name = decoded.name;
+                //console.log(decoded);
+            }
+        });
+
     let invoiceData = {
-        User_ID: req.body.User_ID,
-        Employee_name: req.body.Employee_name,
+        User_ID: userId,
+        Employee_name: name,
         Basic_charge: (req.body.Basic_charge),
         Cost: (parseInt(req.body.Basic_charge) * 30) / 100,
         Total_Cost: parseInt(req.body.Basic_charge) + (parseInt(req.body.Basic_charge) * 30) / 100,
@@ -248,110 +264,110 @@ router.post('/createinvoice', (req, res) => {
         }
         else {
             res.status(200).send(registeredInvoice)
-           // res.json({ state: true, Booking: invoice })
+            // res.json({ state: true, Booking: invoice })
         }
     })
+})
+//R
+router.post('/bookemployee', (req, res) => {
+    var bookingData = req.body;
+    let booking = new Booking(bookingData)
+    booking.save((err, booking) => {
+        if (err) {
+            //console.log(err)
+            res.json({ state: false });
+        }
+        else {
+            res.json({ state: true, Booking: booking });
+        }
     })
-    //R
-    router.post('/bookemployee', (req, res) => {
-        var bookingData = req.body;
-        let booking = new Booking(bookingData)
-        booking.save((err, booking) => {
-            if (err) {
-                //console.log(err)
-                res.json({ state: false });
-            }
-            else {
-                res.json({ state: true, Booking: booking });
-            }
-        })
-    });
+});
 
 
-    //cancelling the job request
-    router.post('/cancelbooking', (req, res) => {
-        var bookingId = req.body.id;
-        //console.log(bookingId)
-        const query = { Bookingid: bookingId };
-        Booking.update(query, { $set: { Booking_status: "canceled" } }, (err, booking) => {
-            if (err) {
-                // console.log(err)
-                res.json({ state: false });
-            }
-            else {
-                res.json({ state: true, Booking: booking });
-            }
-        })
-    });
-
-
-    router.post('/clientBooking', (req, res) => {
-        var clientname = req.body.clientname;
-        //console.log(bookingId)
-        const query = { Client_name: clientname };
-        Booking.find(query, (err, bookings) => {
-            if (err) {
-                // console.log(err)
-                res.json({ state: false });
-            }
-            else {
-                res.json({ state: true, Bookings: bookings });
-            }
-        })
-    });
-
-    //sending invoice mail
-    router.post('/sendemail', (req, res) => {
-        var myemail = req.body.email
-        const query = { _id: req.body.id };
-        Invoice.findOne(query, (err, myinvoice) => {
-            if (err) {
-                //console.log(err)
-                res.json({ state: false });
-            } else {
-                console.log(myinvoice)
-                email.sendinvoice(myemail, myinvoice, (err, callb) => {
-                    if (err) {
-                        //console.log(err)
-                        res.json({ state: false });
-                    } else {
-                        res.json({ state: true, mag: "email sent" });
-                    }
-                })
-            }
-        })
-
+//cancelling the job request
+router.post('/cancelbooking', (req, res) => {
+    var bookingId = req.body.id;
+    //console.log(bookingId)
+    const query = { Bookingid: bookingId };
+    Booking.update(query, { $set: { Booking_status: "canceled" } }, (err, booking) => {
+        if (err) {
+            // console.log(err)
+            res.json({ state: false });
+        }
+        else {
+            res.json({ state: true, Booking: booking });
+        }
     })
-    //-------------------------------------------------------------------------------------------------------------------------------------
-    router.post('/login', (req, res) => {
-        let userData = req.body
-        User.findOne({ email: userData.email }, (error, user) => {
-            if (error) {
-                console.log(error)
-            }
-            else {
-                if (!user) {
-                    res.status(401).send('Email Invalid')
+});
+
+
+router.post('/clientBooking', (req, res) => {
+    var clientname = req.body.clientname;
+    //console.log(bookingId)
+    const query = { Client_name: clientname };
+    Booking.find(query, (err, bookings) => {
+        if (err) {
+            // console.log(err)
+            res.json({ state: false });
+        }
+        else {
+            res.json({ state: true, Bookings: bookings });
+        }
+    })
+});
+
+//sending invoice mail
+router.post('/sendemail', (req, res) => {
+    var myemail = req.body.email
+    const query = { _id: req.body.id };
+    Invoice.findOne(query, (err, myinvoice) => {
+        if (err) {
+            //console.log(err)
+            res.json({ state: false });
+        } else {
+            console.log(myinvoice)
+            email.sendinvoice(myemail, myinvoice, (err, callb) => {
+                if (err) {
+                    //console.log(err)
+                    res.json({ state: false });
+                } else {
+                    res.json({ state: true, mag: "email sent" });
                 }
-                else {
-                    if (user.password !== userData.password) {
-                        res.status(401).send('Not the Password')
-                    }
-                    //res.status(200).json({
-                      //  "token": jwt.sign({ _id: user._id },
-                        //    "SECRET#123",
-                          //  {
-                                expiresIn: "20m"
-                            //})
-                   // });
-                }
-
-            }
-        })
+            })
+        }
     })
 
+})
+//-------------------------------------------------------------------------------------------------------------------------------------
+router.post('/login', (req, res) => {
+    let userData = req.body
+    User.findOne({ email: userData.email }, (error, user) => {
+        if (error) {
+            console.log(error)
+        }
+        else {
+            if (!user) {
+                res.status(401).send('Email Invalid')
+            }
+            else {
+                if (user.password !== userData.password) {
+                    res.status(401).send('Not the Password')
+                }
+                res.status(200).json({
+                    "token": jwt.sign({ _id: user._id, name : user.fname},
+                        "SECRET#123",
+                        {
+                            expiresIn: "20m"
+                        })
+                });
+            }
 
-    module.exports = router
+        }
+    })
+})
+
+
+module.exports = router
 
 //module.exports = router
 
@@ -404,30 +420,4 @@ router.post('/createinvoice', (req, res) => {
     })
 });*/
 
-/*
-router.post('/login', (req, res) => {
-    let userData = req.body
-    User.findOne({ email: userData.email }, (error, user) => {
-        if (error) {
-            console.log(error)
-        }
-        else {
-            if (!user) {
-                res.status(401).send('Email Invalid')
-            }
-            else {
-                if (user.password !== userData.password) {
-                    res.status(401).send('Not the Password')
-                }
-                res.status(200).json({
-                    "token": jwt.sign({ _id: user._id },
-                        "SECRET#123",
-                        {
-                            expiresIn: "20m"
-                        })
-                });
-            }
 
-        }
-    })
-})*/
