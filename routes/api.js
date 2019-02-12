@@ -76,14 +76,14 @@ router.get('/client/:email', function (req, res, next) {
 //Employee login
 router.get('/employees/:email', function (req, res, next) {
     Employee.findOne({ email: req.params.email }).then(function (employee) {
-        //res.send(employee);
-        res.status(200).json({
-            "token": jwt.sign({ _id: employee._id, name: employee.fname },
-                "SECRET#123",
-                {
-                    expiresIn: "20m"
-                })
-        });
+        res.send(employee);
+         res.status(200).json({
+             "token": jwt.sign({ _id: employee._id, name: employee.fname },
+                 "SECRET#123",
+                 {
+                     expiresIn: "20m"
+                 })
+         });
     })
 })
 
@@ -252,8 +252,8 @@ router.post('/createinvoice', (req, res) => {
             else {
                 userId = decoded._id;
                 name = decoded.name;
-                //cost=decoded.Cost;
-                //Total_Cost=decoded.Total_Cost;
+                cost=decoded.Cost;
+                Total_Cost=decoded.Total_Cost;
                 console.log(decoded);
             }
         });
