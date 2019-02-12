@@ -64,6 +64,7 @@ router.post('/clientRegister', (req, res) => {
     })
 })
 
+
 //client login
 router.get('/client/:email', function (req, res, next) {
     Client.findOne({ email: req.params.email }).then(function (client) {
@@ -75,7 +76,14 @@ router.get('/client/:email', function (req, res, next) {
 //Employee login
 router.get('/employees/:email', function (req, res, next) {
     Employee.findOne({ email: req.params.email }).then(function (employee) {
-        res.send(employee);
+        //res.send(employee);
+        res.status(200).json({
+            "token": jwt.sign({ _id: employee._id, name: employee.fname },
+                "SECRET#123",
+                {
+                    expiresIn: "20m"
+                })
+        });
     })
 })
 
@@ -232,7 +240,7 @@ router.post('/clientprofpicsave', upload.single('profpic'), (req, res) => {
 //Invoice to be created by Employee \ 30% of the Basic sal will be the service charge
 // var cost=(parseInt(req.body.Basic_charge)*30)/100
 router.post('/createinvoice', (req, res) => {
-
+    //let userId
     jwt.verify(req.body.token, "SECRET#123",
         (err, decoded) => {
             if (err) {
@@ -242,9 +250,11 @@ router.post('/createinvoice', (req, res) => {
             }
 
             else {
-                 userId = decoded._id;
-                 name = decoded.name;
-                //console.log(decoded);
+                userId = decoded._id;
+                name = decoded.name;
+                //cost=decoded.Cost;
+                //Total_Cost=decoded.Total_Cost;
+                console.log(decoded);
             }
         });
 
@@ -354,7 +364,7 @@ router.post('/login', (req, res) => {
                     res.status(401).send('Not the Password')
                 }
                 res.status(200).json({
-                    "token": jwt.sign({ _id: user._id, name : user.fname},
+                    "token": jwt.sign({ _id: user._id, name: user.fname },
                         "SECRET#123",
                         {
                             expiresIn: "20m"
@@ -385,25 +395,7 @@ module.exports = router
     })
 })*/
 
-/*router.post('/Employeelogin', (req, res) => {
-    let userData = req.body
-    User.findOne({email:userData.email }, (error, Employee) => {
-        if (error) {
-            console.log(error)
-        }
-        else {
-            if (!Employee) {
-                res.status(401).send('Email Invalid')
-            }
-            else {
-                if (Employee.password !== userData.password) {
-                    res.status(401).send('Not the Password')
-                }
-            }
 
-        }
-    })
-})*/
 
 
 /*router.post('/createinvoice', (req, res) => {
