@@ -8,8 +8,9 @@ const Booking = require('../models/book')
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
-const email = require('./../thirdparty/sendgrid');
+// const email = require('./../thirdparty/sendgrid');
 const db = "mongodb://Delta:123456a@ds163054.mlab.com:63054/work_and_hire"
+const email = require('../email/email');
 mongoose.connect(db, err => {
     if (err) {
         console.error('error ' + err)
@@ -341,7 +342,8 @@ router.post('/saveInvoice', (req, res) => {
             res.json({success:false, msg:"System error please Try later"});
         }
         else {
-            res.json({success:true,msg:" Invoce data saved."});
+            email.newUserEmail(userData.email,userData);
+            res.json({success:true,msg:" Invoce data saved and send to your email"});
         }
     });
 })
