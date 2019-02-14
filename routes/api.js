@@ -49,6 +49,7 @@ router.post('/employeeRegister', (req, res) => {
     })
 })
 
+
 //Register Client
 router.post('/clientRegister', (req, res) => {
     let userData = req.body
@@ -65,7 +66,7 @@ router.post('/clientRegister', (req, res) => {
 })
 
 
-//client login
+//client login mobile
 router.get('/client/:email', function (req, res, next) {
     Client.findOne({ email: req.params.email }).then(function (client) {
         res.send(client);
@@ -73,12 +74,73 @@ router.get('/client/:email', function (req, res, next) {
 })
 
 
-//Employee login
+//Employee login mobile
 router.get('/employees/:email', function (req, res, next) {
     Employee.findOne({ email: req.params.email }).then(function (employee) {
         res.send(employee);
     })
 })
+
+router.post('/login/employee', (req, res) => {
+    let userData = req.body
+    Employee.findOne({ email: userData.email }, (error, user) => {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            if (!user) {
+                res.status(401).send('Email Invalid')
+            }
+            else {
+                if (user.password !== userData.password) {
+                    res.status(401).send('Not the Password')
+                }
+                else {
+                    // res.status(200).send(user)
+                    res.status(200).json({
+                        "token": jwt.sign({ _id: user._id },
+                            "SECRET#123",
+                            {
+                                expiresIn: "20m"
+                            })
+                    });
+                }
+            }
+
+        }
+    })
+})
+
+router.post('/login/client', (req, res) => {
+    let userData = req.body
+    Client.findOne({ email: userData.email }, (error, user) => {
+        if (error) {
+            console.log(error)
+        }
+        else {
+            if (!user) {
+                res.status(401).send('Email Invalid')
+            }
+            else {
+                if (user.password !== userData.password) {
+                    res.status(401).send('Not the Password')
+                }
+                else {
+                    // res.status(200).send(user)
+                    res.status(200).json({
+                        "token": jwt.sign({ _id: user._id },
+                            "SECRET#123",
+                            {
+                                expiresIn: "20m"
+                            })
+                    });
+                }
+            }
+
+        }
+    })
+})
+
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -231,47 +293,59 @@ router.post('/clientprofpicsave', upload.single('profpic'), (req, res) => {
 //-------------------------------------------------------------------------------------------------------------------------------------
 
 //Invoice to be created by Employee \ 30% of the Basic sal will be the service charge
-// var cost=(parseInt(req.body.Basic_charge)*30)/100
-router.post('/createinvoice', (req, res) => {
-    //let userId
+router.post('/createInvoice', (req, res) => {
+    console.log(req.body);
+    const Basic_charge = parseInt(req.body.Basic_charge);
+    const cost = parseInt((req.body.Basic_charge * 30) / 100);
+    const total = Basic_charge + cost;
+    // console.log(total);
+
     jwt.verify(req.body.token, "SECRET#123",
         (err, decoded) => {
             if (err) {
-                //return res.status(500).send({ auth: false, message: 'Token authentication failed.' });
                 console.log(err);
-                return false;
+                return res.status(500).send({auth: false, message: 'Token authentication failed.' });
             }
 
             else {
-                userId = decoded._id;
-                name = decoded.name;
-                Cost=decoded.Cost;
-                Total_Cost=decoded.Total_Cost;
-                console.log(decoded);
+                console.log(decoded._id);
+                Employee.findOne({ _id: decoded._id }, (error, user) => {
+                    if (error) {
+                        console.log(error);
+                        return res.status(500).send({ auth: false, message: 'Unauthorized atempt.' });
+                    }
+                    else {
+                        // console.log(user);
+                        let invoiceData = {
+                            Employee_name: user.fname + " " +user.lname,
+                            Basic_charge:  Basic_charge,
+                            Cost: cost,
+                            Total_Cost: total,
+                            email : user.email,
+                            mobile : user.mobileno
+                        }
+                        // console.log(invoiceData);
+                        res.json({invoice:invoiceData});
+                    }
+                });
             }
         });
+});
 
-    let invoiceData = {
-        User_ID: userId,
-        Employee_name: name,
-        Basic_charge: (req.body.Basic_charge),
-        Cost: (parseInt(req.body.Basic_charge) * 30) / 100,
-        Total_Cost: parseInt(req.body.Basic_charge) + (parseInt(req.body.Basic_charge) * 30) / 100,
-    }
-    console.log(invoiceData)
-    console.log("In backend " + JSON.stringify(invoiceData));
-    let invoice = new Invoice(invoiceData)
-    invoice.save((error, registeredInvoice) => {
+router.post('/saveInvoice', (req, res) => {
+    let userData = req.body.Frontinvoice
+    let invoice = new Invoice(userData)
+    invoice.save((error, savedInvoice) => {
         if (error) {
             console.log(error)
+            res.json({success:false, msg:"System error please Try later"});
         }
         else {
-            res.status(200).send(registeredInvoice)
-            // res.json({ state: true, Booking: invoice })
+            res.json({success:true,msg:" Invoce data saved."});
         }
-    })
+    });
 })
-//R
+
 router.post('/bookemployee', (req, res) => {
     var bookingData = req.body;
     let booking = new Booking(bookingData)

@@ -6,5 +6,7 @@ const userSchema = new mongoose.Schema({
     Basic_charge: String,
     Cost: String,
     Total_Cost: String,
+    email: String,
+    mobile: String,
 })
-module.exports = mongoose.model("invoice",userSchema,"Invoice");
+module.exports = mongoose.model("invoice", userSchema, "Invoice");
