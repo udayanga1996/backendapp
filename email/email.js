@@ -1,5 +1,5 @@
 const sgMail = require('@sendgrid/mail');
-sgMail.setApiKey('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');
+sgMail.setApiKey('');
 
 function newUserEmail(email, invoice) {
     // using SendGrid's v3 Node.js Library
